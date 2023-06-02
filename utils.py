@@ -12,6 +12,7 @@ def read_string_to_list(input_string):
     except json.JSONDecodeError:
         print("Error: Invalid JSON string")
         return None   
+    
 # product information
 products = {
     "TechPro Ultrabook": {
