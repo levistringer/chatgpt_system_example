@@ -356,5 +356,3 @@ def find_category_and_product_only(name):
 
 def get_products_and_category(category):
     return [product for product in products.values() if product["category"] == category]
-
-# sys.modules(__name__)  = get_product_by_name
