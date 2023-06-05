@@ -1,18 +1,66 @@
-import sys 
-import json 
+import sys
+import json
+import openai
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv())  # read local .env file
+
+
+def get_completion_from_messages(messages,
+                                 model="gpt-3.5-turbo",
+                                 temperature=0, max_tokens=500):
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    return response.choices[0].message["content"]
+
+
+def find_category_and_product_only(user_message, products_and_categories):
+
+    delimiter = "####"
+    system_message = f"""
+
+    Step 1:{delimiter} If the user is asking about \
+    specific products, identify whether \
+    the products are in the following list.
+    {products_and_categories}
+
+    Step 2:{delimiter} Classify each item into a primary category \
+    and name. 
+    Provide your output in python list format with each item in json format with the \
+    keys: category and product names.
+
+
+
+    """
+    messages = [
+        {'role': 'system',
+         'content': system_message},
+        {'role': 'user',
+         'content': f"{delimiter}{user_message}{delimiter}"},
+    ]
+
+    response = get_completion_from_messages(messages)
+    print(f"""here you go!': {response}""")
+    return
+
 
 def read_string_to_list(input_string):
     if input_string is None:
         return None
 
     try:
-        input_string = input_string.replace("'", "\"")  # Replace single quotes with double quotes for valid JSON
+        # Replace single quotes with double quotes for valid JSON
+        input_string = input_string.replace("'", "\"")
         data = json.loads(input_string)
         return data
     except json.JSONDecodeError:
         print("Error: Invalid JSON string")
-        return None   
-    
+        return None
+
+
 # product information
 products = {
     "TechPro Ultrabook": {
@@ -351,8 +399,16 @@ products = {
     }
 }
 
-def find_category_and_product_only(name):
-    return products.get(name, None)
 
 def get_products_and_category(category):
     return [product for product in products.values() if product["category"] == category]
+
+
+def get_products_and_category_v1():
+    products_and_category = {}
+    for product in products.values():
+        category = product["category"]
+        if category not in products_and_category:
+            products_and_category[category] = []
+        products_and_category[category].append(product["name"])
+    return products_and_category
